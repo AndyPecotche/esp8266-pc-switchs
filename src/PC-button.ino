@@ -2,8 +2,8 @@
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
 
-const char* ssid = "Example_SSID";
-const char* password = "example_password";
+const char* ssid = "ssid";
+const char* password = "pswd";
 
 ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
@@ -12,9 +12,9 @@ String  pwrbtnstate = "off";
 String  rstbuttonstate = "off";
 String  stsbuttonstate = "off";
 #define LED_BUILTIN 2 // LED integrado
-const int PWRbtn = 2; // Botón de encendido
+const int PWRbtn = 3; // Botón de encendido
 const int RSTbtn = 0; // Botón de reset
-const int STSbtn = 3; // Boton de entrada de señal de control
+const int STSbtn = 1; // Boton de entrada de señal de control
 const long pwrDuration = 300; // Duración de presionar el botón (en milisegundos)
 const long pwrForceDuration = 6500; // Duración de presionar el botón (en milisegundos)
 const long rstDuration = 300; // Duración de presionar el botón (en milisegundos)
