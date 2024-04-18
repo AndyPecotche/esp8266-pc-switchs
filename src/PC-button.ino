@@ -3,7 +3,7 @@
 #include <WebSocketsServer.h>
 
 const char* ssid = "ssid";
-const char* password = "pswd";
+const char* password = "psw";
 
 ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
@@ -12,9 +12,9 @@ String  pwrbtnstate = "off";
 String  rstbuttonstate = "off";
 String  stsbuttonstate = "off";
 #define LED_BUILTIN 2 // LED integrado
-const int PWRbtn = 3; // Botón de encendido
-const int RSTbtn = 0; // Botón de reset
-const int STSbtn = 1; // Boton de entrada de señal de control
+const int PWRbtn = 0; // Botón de encendido
+const int RSTbtn = 3; // Botón de reset
+const int STSbtn = 3; // Boton de entrada de señal de control / Usa el mismo pin que el botón de reset
 const long pwrDuration = 300; // Duración de presionar el botón (en milisegundos)
 const long pwrForceDuration = 6500; // Duración de presionar el botón (en milisegundos)
 const long rstDuration = 300; // Duración de presionar el botón (en milisegundos)
@@ -30,47 +30,50 @@ void handlePWRbtn() {
   webSocket.broadcastTXT("ON");
   Serial.println("WEBSOCKET -ON- ENVIADO AL CLIENTE!");
   Serial.println("Apretando boton, y encendiendo led fisico");
-  digitalWrite(LED_BUILTIN, LOW); // Encender el LED
+  //digitalWrite(LED_BUILTIN, LOW); // Encender el LED
   digitalWrite(PWRbtn, LOW);
   pwrbtnstate = "on";
   delay(pwrDuration);
   digitalWrite(PWRbtn, HIGH);
   Serial.println("Boton soltado");
   pwrbtnstate = "off";
-  digitalWrite(LED_BUILTIN, HIGH); // Apagar el LED
+  //digitalWrite(LED_BUILTIN, HIGH); // Apagar el LED
   Serial.println("LED fisico apagado");
   Serial.println("Se enviara websocket OFF");
   webSocket.broadcastTXT("OFF");
   Serial.println("WEBSOCKET -OFF- ENVIADO AL CLIENTE!");
   server.send(200,"OK");
   Serial.println("Se envio respuesta 200 al cliente");
-  //handleRoot();
 }
 
 void handleForcePWRbtn() {
+  
   webSocket.broadcastTXT("ONFRC");
-  digitalWrite(LED_BUILTIN, LOW); // Encender el LED
+  //digitalWrite(LED_BUILTIN, LOW); // Encender el LED
   digitalWrite(PWRbtn, LOW);
   pwrbtnstate = "on";
   delay(pwrForceDuration);
   digitalWrite(PWRbtn, HIGH);
   pwrbtnstate = "off";
-  digitalWrite(LED_BUILTIN, HIGH); // Apagar el LED
+  //digitalWrite(LED_BUILTIN, HIGH); // Apagar el LED
   webSocket.broadcastTXT("OFFFRC");
   server.send(200,"OK");
 }
 
 void handleRSTbtn() {
+  Serial.println("RST button pressed on client.");
+  pinMode(STSbtn, OUTPUT);
   webSocket.broadcastTXT("RSTON");
-  digitalWrite(LED_BUILTIN, LOW); // Encender el LED
+  //digitalWrite(LED_BUILTIN, LOW); // Encender el LED
   digitalWrite(RSTbtn, LOW);
   rstbuttonstate = "on";
   delay(rstDuration);
   digitalWrite(RSTbtn, HIGH);
   rstbuttonstate = "off";
-  digitalWrite(LED_BUILTIN, HIGH); // Apagar el LED
+  //digitalWrite(LED_BUILTIN, HIGH); // Apagar el LED
   webSocket.broadcastTXT("RSTOFF");
   server.send(200,"OK");
+  pinMode(STSbtn,INPUT);
 }
 
 void handleSTSbtn(){
@@ -123,13 +126,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 }
 
 void handleRoot() {
-  // Determinar el color del botón y del texto
-  //String btnColor = pwrbtnstate == "on" ? "#ECECEC" : "blue";
-  //String btnColor = rstbuttonstate == "on" ? "#ECECEC" : "green";
   String stsbtncolor = actualState == HIGH ? "green" : "#ECECEC"; //la pagina carga el estado por primera vez
-  // Duración en milisegundos para mantener el botón verde
-  //int pwrDuration = 2000; // Cambia este valor según tus necesidades
-
   // HTML enviado al cliente al cargar la página
   String html = R"=====(<!DOCTYPE html>
 <html>
@@ -330,10 +327,8 @@ void setup() {
   Serial.begin(115200);
   pinMode(PWRbtn, OUTPUT);
   digitalWrite(PWRbtn, HIGH);
-  pinMode(RSTbtn, OUTPUT);
-  digitalWrite(RSTbtn, HIGH);
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH); // Apagar el LED al inicio
+  //pinMode(LED_BUILTIN, OUTPUT);
+  //digitalWrite(LED_BUILTIN, HIGH); // Apagar el LED al inicio
   pinMode(STSbtn, INPUT);
 
   WiFi.begin(ssid, password);
@@ -350,12 +345,12 @@ void setup() {
   server.on("/PWRbtn", handlePWRbtn);
   server.on("/forcePWRbtn", handleForcePWRbtn);
   server.on("/RSTbtn", handleRSTbtn);
-  server.on("/STSbtn", handleSTSbtn);
+  //server.on("/STSbtn", handleSTSbtn);
   server.begin();
   
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
-  actualState = digitalRead(STSbtn); 
+  //actualState = digitalRead(STSbtn);
 }
 
 
@@ -364,10 +359,9 @@ void loop() {
   server.handleClient();
   webSocket.loop();
   unsigned long currentMillis = millis(); // Obtener el tiempo actual
-
   // Verificar si ha pasado el intervalo de tiempo desde la última verificación del botón STSbtn
   if (currentMillis - lastSTSbtnCheck >= STSbtnCheckInterval) {
-    actualState = digitalRead(STSbtn); 
+    actualState = digitalRead(STSbtn);
     if (lastState != actualState){
       Serial.println("Se detecto un cambio en el estado del boton STSbtn");
       handleSTSbtn(); // Llamar a la función handleSTSbtn
@@ -375,6 +369,4 @@ void loop() {
     lastSTSbtnCheck = currentMillis; // Actualizar el tiempo de la última verificación
     lastState = actualState;
   }
-
-  // Aquí puedes colocar el resto del código que deseas ejecutar en el bucle loop sin bloquear
 }
