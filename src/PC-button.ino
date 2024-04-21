@@ -10,9 +10,9 @@
 
 #define LED_BUILTIN 2 // LED integrado
 const char* http_username = "admin";
-const char* http_password = "admin123";
-const char* ssid = "andy";
-const char* password = "12345678i";
+const char* http_password = "admin";
+const char* ssid = "ssid";
+const char* password = "psw";
 
 WebServer server(80);
 
