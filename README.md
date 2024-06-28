@@ -1,9 +1,9 @@
 This project is used to create a remote power and reset button for any PC or server using an ESP32 or ESP8266/01 board.
 Connections:
-GND to PC GND
-VCC to PC 5v USB VCC. (if used esp01s, needs an 5v to 3.3v ams1117 module)
-PWR GPIO to PC PWR+
-RST & STS GPIO to PC RST+
+- GND to PC GND
+- VCC to PC 5v USB VCC. (if used esp01s, needs an 5v to 3.3v ams1117 module)
+- PWR GPIO to PC PWR+
+- RST & STS GPIO to PC RST+
 
 How to build PlatformIO based project
 =====================================
